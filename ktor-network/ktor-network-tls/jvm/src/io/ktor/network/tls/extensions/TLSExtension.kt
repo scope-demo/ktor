@@ -5,9 +5,9 @@
 package io.ktor.network.tls.extensions
 
 import io.ktor.network.tls.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 
-internal enum class TLSExtensionType(val code: Short) {
+enum class TLSExtensionType(val code: Short) {
     SERVER_NAME(0),
     MAX_FRAGMENT_LENGTH(1),
     CLIENT_CERTIFICATE_URL(2),

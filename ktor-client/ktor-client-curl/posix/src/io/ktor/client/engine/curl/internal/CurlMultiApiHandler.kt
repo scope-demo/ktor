@@ -6,7 +6,7 @@ package io.ktor.client.engine.curl.internal
 
 import io.ktor.client.engine.curl.*
 import kotlinx.cinterop.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 import libcurl.*
 
 private class RequestHolders(
@@ -39,7 +39,7 @@ internal class CurlMultiApiHandler : Closeable {
 
     fun scheduleRequest(request: CurlRequestData) {
         val easyHandle = curl_easy_init()
-            ?: throw @Suppress("DEPRECATION")CurlIllegalStateException("Could not initialize an easy handle")
+            ?: throw @Suppress("DEPRECATION") CurlIllegalStateException("Could not initialize an easy handle")
 
         val responseData = CurlResponseBuilder(request)
         val responseDataRef = responseData.asStablePointer()
@@ -58,6 +58,10 @@ internal class CurlMultiApiHandler : Closeable {
             option(CURLOPT_WRITEDATA, responseDataRef)
             option(CURLOPT_PRIVATE, responseDataRef)
             option(CURLOPT_ACCEPT_ENCODING, "")
+
+            request.proxy?.let { proxy ->
+                option(CURLOPT_PROXY, proxy.toString())
+            }
         }
 
         curl_multi_add_handle(multiHandle, easyHandle).verify()
@@ -70,7 +74,7 @@ internal class CurlMultiApiHandler : Closeable {
             var repeats = 0
             do {
                 curl_multi_perform(multiHandle, transfersRunning.ptr).verify()
-                curl_multi_wait(multiHandle, null, 0, millis, activeTasks.ptr).verify()
+                curl_multi_wait(multiHandle, null, 0.toUInt(), millis, activeTasks.ptr).verify()
 
                 repeats = if (activeTasks.value == 0) repeats + 1 else 0
             } while (repeats <= 1 && transfersRunning.value != 0)
@@ -91,9 +95,7 @@ internal class CurlMultiApiHandler : Closeable {
         }
     }
 
-    private fun setupUploadContent(easyHandle: EasyHandle, content: ByteArray?): COpaquePointer? {
-        if (content == null) return null
-
+    private fun setupUploadContent(easyHandle: EasyHandle, content: ByteArray): COpaquePointer? {
         val stream = buildPacket { writeFully(content) }
         val requestPointer = stream.asStablePointer()
 
