@@ -9,12 +9,13 @@ import io.ktor.client.engine.*
 import io.ktor.client.tests.utils.dispatcher.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.core.*
 
 /**
  * Local test server url.
  */
 const val TEST_SERVER: String = "http://127.0.0.1:8080"
+const val HTTP_PROXY_SERVER: String = "http://127.0.0.1:8082"
 
 /**
  * Perform test with selected client [engine].

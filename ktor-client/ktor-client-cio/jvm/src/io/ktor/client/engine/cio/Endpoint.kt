@@ -20,6 +20,7 @@ import kotlin.coroutines.*
 internal class Endpoint(
     host: String,
     port: Int,
+    private val overProxy: Boolean,
     private val secure: Boolean,
     private val config: CIOEngineConfig,
     private val connectionFactory: ConnectionFactory,
@@ -94,11 +95,11 @@ internal class Endpoint(
 
             val timeout = config.requestTimeout
             val responseData = if (timeout == 0L) {
-                request.write(output, callContext)
+                request.write(output, callContext, overProxy)
                 readResponse(requestTime, request, input, output, callContext)
             } else {
                 withTimeout(timeout) {
-                    request.write(output, callContext)
+                    request.write(output, callContext, overProxy)
                     readResponse(requestTime, request, input, output, callContext)
                 }
             }
@@ -125,6 +126,7 @@ internal class Endpoint(
         val pipeline = ConnectionPipeline(
             config.endpoint.keepAliveTime, config.endpoint.pipelineMaxSize,
             socket,
+            overProxy,
             deliveryPoint,
             coroutineContext
         )
@@ -188,14 +190,13 @@ internal class Endpoint(
     }
 }
 
-@KtorExperimentalAPI
 @Suppress("KDocMissingDocumentation")
 @Deprecated(
-    "Use [FailToConnectException] instead",
-    level = DeprecationLevel.ERROR, replaceWith = ReplaceWith("FailToConnectException")
+    "Binary compatibility.",
+    level = DeprecationLevel.HIDDEN, replaceWith = ReplaceWith("FailToConnectException")
 )
 open class ConnectException : Exception("Connect timed out or retry attempts exceeded")
 
+@Suppress("KDocMissingDocumentation")
 @KtorExperimentalAPI
-@Suppress("DEPRECATION_ERROR", "KDocMissingDocumentation")
-class FailToConnectException : ConnectException()
+class FailToConnectException : Exception("Connect timed out or retry attempts exceeded")

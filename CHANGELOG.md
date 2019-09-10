@@ -1,5 +1,31 @@
-# 1.2.3
+# 1.3.0
 > Unpublished yet
+
+* ktor client proxy support
+* Eliminated kotlinx.io dependency 
+* Fixed server identity compression handling: keep original content length
+* Fixed handling GET requests with body (#1302)
+* Fixed curl request with empty body
+* Added iOS url session configuration
+* Fixed CIO engine no longer sends port in "Host" header (#1295)
+* Add INTRINSIC value to TLS signature algorithms
+* Introduced ability to send string in request body
+* Improved client and server typeOf support with kotlinx.serialization
+* Gradle 5.4.1+ with newer metadata
+
+# 1.2.4
+> Published 2 Sep 2019
+
+* Fixed multipart form header entity separator
+* Fixed crypto in IE11 (#1283)
+* Marked response transient in the client exception (#1256)
+* Fixed network on main thread in okhttp engine close
+* Fixed follow redirect iOS (#1000)
+* Kotlin 1.3.50
+* kotlinx.coroutines 1.3.0
+
+# 1.2.3
+> Published 1 Aug 2019
 
 * JS websocket bugs fixes and improvements
 * Eliminated Java9's Base64 implementation (useful for older JDK and Android)
@@ -14,12 +40,19 @@
 * Added web assembly content type.
 * Prohibited server double request content `call.receive`.
     * Introduce `DoubleReceive` feature that makes it work.
+* Server CORS support fixed and improved
 * Added initial kotlinx.serialization support for server including receiving generic collections.
 * Introduced `ktor-bom` for better dependency management.
 * Improved jetty server engine configuration to enable manual connectors setup. 
 * Fixed client memory leak (#1223).
 * Upgraded Jetty, Netty and utility libraries.
 * Kotlin 1.3.41
+
+
+Breaking changes/Migration steps:
+* CORS doesn't allow non-simple request body content types anymore by default
+  * to allow extra content types such as json, enable `allowNonSimpleContentTypes`
+* At least Kotlin 1.3.41 IS REQUIRED
 
 # 1.2.2
 > Published 20 June 2019

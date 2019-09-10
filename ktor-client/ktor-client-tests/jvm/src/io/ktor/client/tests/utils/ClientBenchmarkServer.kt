@@ -12,7 +12,7 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.io.*
+import io.ktor.utils.io.*
 
 internal fun Application.benchmarks() {
     routing {
@@ -63,7 +63,21 @@ internal fun Application.benchmarks() {
             /**
              * Upload file
              */
-            post("/bytes") {}
+            post("/bytes") {
+                val content = call.receive<ByteArray>()
+                call.respond("${content.size}")
+            }
+
+            /**
+             * Upload file
+             */
+            post("/echo") {
+
+                val channel = call.request.receiveChannel()
+                call.respond(object : OutgoingContent.ReadChannelContent() {
+                    override fun readFrom(): ByteReadChannel = channel
+                })
+            }
 
             route("/websockets") {
                 webSocket("/get/{count}") {

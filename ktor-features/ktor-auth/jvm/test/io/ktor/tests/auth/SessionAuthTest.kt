@@ -54,9 +54,9 @@ class SessionAuthTest {
                 assertEquals(HttpStatusCode.Unauthorized.value, call.response.status()?.value)
             }
 
-            handleRequest(HttpMethod.Get, "/", {
+            handleRequest(HttpMethod.Get, "/") {
                 addHeader("Cookie", "S=${autoSerializerOf<MySession>().serialize(MySession(1))}")
-            }).let { call ->
+            }.let { call ->
                 assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
             }
 
@@ -96,7 +96,7 @@ class SessionAuthTest {
     }
 
     @Test
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION_ERROR")
     fun testSessionOnlyDeprecated() {
         withTestApplication {
             application.install(Sessions) {
@@ -124,9 +124,9 @@ class SessionAuthTest {
                 assertEquals(HttpStatusCode.Unauthorized.value, call.response.status()?.value)
             }
 
-            handleRequest(HttpMethod.Get, "/", {
+            handleRequest(HttpMethod.Get, "/") {
                 addHeader("Cookie", "S=${autoSerializerOf<MySession>().serialize(MySession(1))}")
-            }).let { call ->
+            }.let { call ->
                 assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
             }
 

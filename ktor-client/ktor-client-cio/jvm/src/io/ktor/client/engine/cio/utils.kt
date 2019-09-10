@@ -14,11 +14,14 @@ import io.ktor.http.cio.websocket.*
 import io.ktor.http.content.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.errors.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.errors.*
 import kotlin.coroutines.*
 
-internal suspend fun HttpRequestData.write(output: ByteWriteChannel, callContext: CoroutineContext) {
+internal suspend fun HttpRequestData.write(
+    output: ByteWriteChannel, callContext: CoroutineContext,
+    overProxy: Boolean
+) {
     val builder = RequestResponseBuilder()
 
     val contentLength = headers[HttpHeaders.ContentLength] ?: body.contentLength?.toString()
@@ -27,8 +30,15 @@ internal suspend fun HttpRequestData.write(output: ByteWriteChannel, callContext
     val chunked = contentLength == null || responseEncoding == "chunked" || contentEncoding == "chunked"
 
     try {
-        builder.requestLine(method, url.fullPath, HttpProtocolVersion.HTTP_1_1.toString())
-        builder.headerLine("Host", url.hostWithPort)
+        val urlString = if (overProxy) {
+            url.toString()
+        } else {
+            url.fullPath
+        }
+
+        builder.requestLine(method, urlString, HttpProtocolVersion.HTTP_1_1.toString())
+        // this will only add the port to the host header if the port is non-standard for the protocol
+        builder.headerLine("Host", if (url.protocol.defaultPort == url.port) url.host else url.hostWithPort)
 
         mergeHeaders(headers, body) { key, value ->
             builder.headerLine(key, value)

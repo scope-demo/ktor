@@ -5,20 +5,25 @@
 package io.ktor.client.engine.curl.internal
 
 import io.ktor.client.call.*
+import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.io.*
-import kotlinx.io.core.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import libcurl.*
 import kotlin.coroutines.*
 
-internal suspend fun HttpRequestData.toCurlRequest(): CurlRequestData = CurlRequestData(
+@SharedImmutable
+private val EMPTY_BYTE_ARRAY = ByteArray(0)
+
+internal suspend fun HttpRequestData.toCurlRequest(config: HttpClientEngineConfig): CurlRequestData = CurlRequestData(
     url = url.toString(),
     method = method.value,
     headers = headersToCurl(),
+    proxy = config.proxy,
     content = body.toCurlByteArray()
 )
 
@@ -26,10 +31,11 @@ internal class CurlRequestData(
     val url: String,
     val method: String,
     val headers: CPointer<curl_slist>,
-    val content: ByteArray?
+    val proxy: ProxyConfig?,
+    val content: ByteArray
 ) {
     override fun toString(): String =
-        "CurlRequestData(url='$url', method='$method', content: ${content?.size ?: 0} bytes)"
+        "CurlRequestData(url='$url', method='$method', content: ${content.size} bytes)"
 }
 
 internal class CurlResponseBuilder(val request: CurlRequestData) {
@@ -58,12 +64,12 @@ internal class CurlFail(
     override fun toString(): String = "CurlFail($cause)"
 }
 
-internal suspend fun OutgoingContent.toCurlByteArray(): ByteArray? = when (this@toCurlByteArray) {
+internal suspend fun OutgoingContent.toCurlByteArray(): ByteArray = when (this@toCurlByteArray) {
     is OutgoingContent.ByteArrayContent -> bytes()
     is OutgoingContent.WriteChannelContent -> GlobalScope.writer(coroutineContext) {
         writeTo(channel)
     }.channel.readRemaining().readBytes()
     is OutgoingContent.ReadChannelContent -> readFrom().readRemaining().readBytes()
-    is OutgoingContent.NoContent -> null
+    is OutgoingContent.NoContent -> EMPTY_BYTE_ARRAY
     else -> throw UnsupportedContentTypeException(this@toCurlByteArray)
 }
