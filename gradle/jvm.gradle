@@ -90,7 +90,7 @@ jvmTest {
     ignoreFailures = true
     maxHeapSize = "2g"
     exclude("**/*StressTest*")
-    jvmArgs("-javaagent:${project.rootDir}/.scope/scope-agent-0.2.4.jar")
+    jvmArgs("-javaagent:${project.rootDir}/.scope/scope-agent-0.2.5-beta.4.jar")
 }
 
 task stressTest(type: Test) {
